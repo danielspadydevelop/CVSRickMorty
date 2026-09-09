@@ -14,6 +14,7 @@ final class CharacterSearchViewModel {
     private var searchTask: Task<Void, Never>?
 
     private(set) var characters: [Character] = []
+    private(set) var noResultsText: String?
     var searchText = ""
     var isLoading = false
     var errorMessage: String?
@@ -32,6 +33,7 @@ final class CharacterSearchViewModel {
 
         guard !newValue.isEmpty else {
             characters = []
+            noResultsText = nil
             errorMessage = nil
             isLoading = false
             return
@@ -49,6 +51,7 @@ final class CharacterSearchViewModel {
 
     func performSearch(named name: String) async {
         isLoading = true
+        noResultsText = nil
         errorMessage = nil
         defer { isLoading = false }
 
@@ -56,6 +59,9 @@ final class CharacterSearchViewModel {
             characters = try await service.searchCharacters(named: name)
         } catch is CancellationError {
             return
+        } catch CharacterServiceError.unexpectedStatus(404) {
+            characters = []
+            noResultsText = "No characters found for \"\(name)\"."
         } catch {
             characters = []
             errorMessage = error.localizedDescription
