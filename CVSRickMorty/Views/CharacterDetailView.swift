@@ -12,6 +12,10 @@ struct CharacterDetailView: View {
 
     private let formatter = CharacterDetailFormatter()
 
+    @State private var shareItems: [Any] = []
+    @State private var isPreparingShare = false
+    @State private var isShowingShareSheet = false
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -39,6 +43,38 @@ struct CharacterDetailView: View {
             .padding(.vertical)
         }
         .navigationTitle(character.name)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Share", systemImage: "square.and.arrow.up") {
+                    Task { await prepareShare() }
+                }
+                .disabled(isPreparingShare)
+                .accessibilityLabel("Share character")
+            }
+        }
+        .sheet(isPresented: $isShowingShareSheet) {
+            ShareSheet(items: shareItems)
+                .presentationDetents([.medium, .large])
+        }
+    }
+
+    private var shareText: String {
+        "\(character.name) — \(character.species), \(character.status), "
+            + "from \(character.origin.name). "
+            + "Created \(formatter.createdDateText(for: character))."
+    }
+
+    private func prepareShare() async {
+        isPreparingShare = true
+        defer { isPreparingShare = false }
+
+        var items: [Any] = [shareText]
+        if let data = try? await URLSession.shared.data(from: character.image).0,
+           let image = UIImage(data: data) {
+            items.insert(image, at: 0)
+        }
+        shareItems = items
+        isShowingShareSheet = true
     }
 
     private func detailRow(title: String, text: String) -> some View {
