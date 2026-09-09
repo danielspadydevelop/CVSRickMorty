@@ -17,6 +17,26 @@ nonisolated struct Character: Decodable, Equatable, Identifiable {
     let image: URL
     let created: Date
 
+    init(
+        id: Int,
+        name: String,
+        status: String,
+        species: String,
+        type: String,
+        origin: Origin,
+        image: URL,
+        created: Date
+    ) {
+        self.id = id
+        self.name = name
+        self.status = status
+        self.species = species
+        self.type = type
+        self.origin = origin
+        self.image = image
+        self.created = created
+    }
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(Int.self, forKey: .id)
