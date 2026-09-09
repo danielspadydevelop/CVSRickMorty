@@ -7,8 +7,22 @@
 
 import Foundation
 
+nonisolated struct CharacterQuery: Equatable {
+    var name: String
+    var status: String?
+    var species: String?
+    var type: String?
+
+    init(name: String, status: String? = nil, species: String? = nil, type: String? = nil) {
+        self.name = name
+        self.status = status
+        self.species = species
+        self.type = type
+    }
+}
+
 protocol CharacterService: Sendable {
-    func searchCharacters(named name: String) async throws -> [Character]
+    func searchCharacters(matching query: CharacterQuery) async throws -> [Character]
 }
 
 enum CharacterServiceError: Error, Equatable {
@@ -16,18 +30,6 @@ enum CharacterServiceError: Error, Equatable {
     case invalidResponse
     case unexpectedStatus(Int)
 }
-
-#if DEBUG
-final class CharacterServiceStub: CharacterService {
-    var searchResultsToReturn: Result<[Character], Error> = .success([])
-    private(set) var searchedNames: [String] = []
-
-    func searchCharacters(named name: String) async throws -> [Character] {
-        searchedNames.append(name)
-        return try searchResultsToReturn.get()
-    }
-}
-#endif
 
 extension CharacterServiceError: LocalizedError {
     var errorDescription: String? {
@@ -41,3 +43,15 @@ extension CharacterServiceError: LocalizedError {
         }
     }
 }
+
+#if DEBUG
+final class CharacterServiceStub: CharacterService {
+    var searchResultsToReturn: Result<[Character], Error> = .success([])
+    private(set) var receivedQueries: [CharacterQuery] = []
+
+    func searchCharacters(matching query: CharacterQuery) async throws -> [Character] {
+        receivedQueries.append(query)
+        return try searchResultsToReturn.get()
+    }
+}
+#endif

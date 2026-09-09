@@ -10,13 +10,11 @@ import XCTest
 final class CVSRickMortyUITests: XCTestCase {
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        // Set the initial state (such as interface orientation) required for your
+        // tests before they run. The setUp method is a good place to do this.
 
         // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // Set the initial state (such as interface orientation) required for your
-        // tests before they run. The setUp method is a good place to do this.
     }
 
     override func tearDownWithError() throws {
@@ -24,12 +22,23 @@ final class CVSRickMortyUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testSearchFlow() throws {
         let app = XCUIApplication()
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        let searchField = app.searchFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        searchField.tap()
+        searchField.typeText("rick")
+
+        let firstCell = app.cells.firstMatch
+        XCTAssertTrue(firstCell.waitForExistence(timeout: 10))
+        XCTAssertGreaterThan(app.cells.count, 0)
+
+        firstCell.tap()
+        XCTAssertTrue(
+            app.navigationBars.staticTexts["Rick Sanchez"].waitForExistence(timeout: 5)
+        )
     }
 
     @MainActor

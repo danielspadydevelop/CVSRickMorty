@@ -9,8 +9,13 @@ import SwiftUI
 
 struct CharacterDetailView: View {
     let character: Character
+    var namespace: Namespace.ID
 
     private let formatter = CharacterDetailFormatter()
+
+    @State private var shareItems: [Any] = []
+    @State private var isPreparingShare = false
+    @State private var isShowingShareSheet = false
 
     var body: some View {
         ScrollView {
@@ -24,6 +29,7 @@ struct CharacterDetailView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityLabel(character.name)
+                .navigationTransition(.zoom(sourceID: character.id, in: namespace))
 
                 VStack(alignment: .leading, spacing: 12) {
                     detailRow(title: "Species", text: character.species)
@@ -39,6 +45,38 @@ struct CharacterDetailView: View {
             .padding(.vertical)
         }
         .navigationTitle(character.name)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Share", systemImage: "square.and.arrow.up") {
+                    Task { await prepareShare() }
+                }
+                .disabled(isPreparingShare)
+                .accessibilityLabel("Share character")
+            }
+        }
+        .sheet(isPresented: $isShowingShareSheet) {
+            ShareSheet(items: shareItems)
+                .presentationDetents([.medium, .large])
+        }
+    }
+
+    private var shareText: String {
+        "\(character.name) — \(character.species), \(character.status), "
+            + "from \(character.origin.name). "
+            + "Created \(formatter.createdDateText(for: character))."
+    }
+
+    private func prepareShare() async {
+        isPreparingShare = true
+        defer { isPreparingShare = false }
+
+        var items: [Any] = [shareText]
+        if let data = try? await URLSession.shared.data(from: character.image).0,
+           let image = UIImage(data: data) {
+            items.insert(image, at: 0)
+        }
+        shareItems = items
+        isShowingShareSheet = true
     }
 
     private func detailRow(title: String, text: String) -> some View {
@@ -47,11 +85,14 @@ struct CharacterDetailView: View {
                 .foregroundStyle(.secondary)
             Text(text)
         }
+        .accessibilityElement(children: .combine)
     }
 }
 
 #Preview {
+    @Previewable @Namespace var namespace
+
     NavigationStack {
-        CharacterDetailView(character: .fixture())
+        CharacterDetailView(character: .fixture(), namespace: namespace)
     }
 }

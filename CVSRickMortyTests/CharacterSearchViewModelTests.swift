@@ -37,7 +37,7 @@ struct CharacterSearchViewModelTests {
         stub.searchResultsToReturn = .success([try makeCharacter()])
         let viewModel = CharacterSearchViewModel(service: stub)
 
-        await viewModel.performSearch(named: "rick")
+        await viewModel.performSearch(matching: CharacterQuery(name: "rick"))
 
         #expect(viewModel.characters.count == 1)
         #expect(viewModel.characters.first?.name == "Rick Sanchez")
@@ -52,11 +52,25 @@ struct CharacterSearchViewModelTests {
         stub.searchResultsToReturn = .failure(CharacterServiceError.unexpectedStatus(500))
         let viewModel = CharacterSearchViewModel(service: stub)
 
-        await viewModel.performSearch(named: "rick")
+        await viewModel.performSearch(matching: CharacterQuery(name: "rick"))
 
         #expect(viewModel.characters.isEmpty)
         #expect(viewModel.errorMessage == "The server returned an unexpected status code: 500.")
         #expect(viewModel.isLoading == false)
+    }
+
+    @MainActor
+    @Test("A 404 maps to a no-results state instead of an error")
+    func notFoundMapsToNoResults() async throws {
+        let stub = CharacterServiceStub()
+        stub.searchResultsToReturn = .failure(CharacterServiceError.unexpectedStatus(404))
+        let viewModel = CharacterSearchViewModel(service: stub)
+
+        await viewModel.performSearch(matching: CharacterQuery(name: "xyz"))
+
+        #expect(viewModel.characters.isEmpty)
+        #expect(viewModel.errorMessage == nil)
+        #expect(viewModel.noResultsText == "No characters found for \"xyz\".")
     }
 
     @MainActor
@@ -66,14 +80,14 @@ struct CharacterSearchViewModelTests {
         stub.searchResultsToReturn = .success([try makeCharacter()])
         let viewModel = CharacterSearchViewModel(service: stub)
 
-        await viewModel.performSearch(named: "rick")
+        await viewModel.performSearch(matching: CharacterQuery(name: "rick"))
         #expect(viewModel.characters.count == 1)
 
         viewModel.searchTextChanged("")
 
         #expect(viewModel.characters.isEmpty)
         #expect(viewModel.errorMessage == nil)
-        #expect(stub.searchedNames == ["rick"])
+        #expect(stub.receivedQueries.map(\.name) == ["rick"])
     }
 
     @MainActor
@@ -88,7 +102,28 @@ struct CharacterSearchViewModelTests {
         viewModel.searchTextChanged("rick")
         try await Task.sleep(for: .milliseconds(500))
 
-        #expect(stub.searchedNames == ["rick"])
+        #expect(stub.receivedQueries.map(\.name) == ["rick"])
         #expect(viewModel.characters.first?.name == "Rick Sanchez")
+    }
+
+    @MainActor
+    @Test("Changing filters re-searches with the selected filters in the query")
+    func filterChangesReSearchWithFilters() async throws {
+        let stub = CharacterServiceStub()
+        stub.searchResultsToReturn = .success([try makeCharacter()])
+        let viewModel = CharacterSearchViewModel(service: stub)
+
+        viewModel.searchText = "rick"
+        viewModel.statusFilter = .alive
+        viewModel.speciesFilter = .human
+        viewModel.typeFilterText = "Genetic"
+        viewModel.filtersChanged()
+        try await Task.sleep(for: .milliseconds(500))
+
+        let query = try #require(stub.receivedQueries.last)
+        #expect(query.name == "rick")
+        #expect(query.status == "alive")
+        #expect(query.species == "Human")
+        #expect(query.type == "Genetic")
     }
 }

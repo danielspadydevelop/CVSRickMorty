@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CharacterRowView: View {
     let character: Character
+    var namespace: Namespace.ID
 
     var body: some View {
         HStack(spacing: 12) {
@@ -22,6 +23,7 @@ struct CharacterRowView: View {
             .frame(width: 56, height: 56)
             .clipShape(.rect(cornerRadius: 8))
             .accessibilityLabel(character.name)
+            .matchedTransitionSource(id: character.id, in: namespace)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(character.name)
@@ -34,5 +36,7 @@ struct CharacterRowView: View {
 }
 
 #Preview {
-    CharacterRowView(character: .fixture())
+    @Previewable @Namespace var namespace
+
+    CharacterRowView(character: .fixture(), namespace: namespace)
 }
