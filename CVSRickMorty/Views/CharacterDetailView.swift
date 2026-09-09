@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CharacterDetailView: View {
     let character: Character
+    var namespace: Namespace.ID
 
     private let formatter = CharacterDetailFormatter()
 
@@ -28,6 +29,7 @@ struct CharacterDetailView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityLabel(character.name)
+                .navigationTransition(.zoom(sourceID: character.id, in: namespace))
 
                 VStack(alignment: .leading, spacing: 12) {
                     detailRow(title: "Species", text: character.species)
@@ -87,7 +89,9 @@ struct CharacterDetailView: View {
 }
 
 #Preview {
+    @Previewable @Namespace var namespace
+
     NavigationStack {
-        CharacterDetailView(character: .fixture())
+        CharacterDetailView(character: .fixture(), namespace: namespace)
     }
 }

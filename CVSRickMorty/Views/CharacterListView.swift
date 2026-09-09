@@ -10,6 +10,7 @@ import SwiftUI
 struct CharacterListView: View {
     @State private var viewModel = CharacterSearchViewModel(service: RickAndMortyAPIService())
     @State private var isShowingFilters = false
+    @Namespace private var imageTransitionNamespace
 
     var body: some View {
         NavigationStack {
@@ -26,7 +27,7 @@ struct CharacterListView: View {
             }
             .navigationTitle("Rick and Morty")
             .navigationDestination(for: Character.self) { character in
-                CharacterDetailView(character: character)
+                CharacterDetailView(character: character, namespace: imageTransitionNamespace)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -51,7 +52,7 @@ struct CharacterListView: View {
     private var content: some View {
         List(viewModel.characters) { character in
             NavigationLink(value: character) {
-                CharacterRowView(character: character)
+                CharacterRowView(character: character, namespace: imageTransitionNamespace)
             }
         }
         .listStyle(.plain)
