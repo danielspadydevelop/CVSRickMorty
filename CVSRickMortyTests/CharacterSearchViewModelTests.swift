@@ -60,6 +60,20 @@ struct CharacterSearchViewModelTests {
     }
 
     @MainActor
+    @Test("A 404 maps to a no-results state instead of an error")
+    func notFoundMapsToNoResults() async throws {
+        let stub = CharacterServiceStub()
+        stub.searchResultsToReturn = .failure(CharacterServiceError.unexpectedStatus(404))
+        let viewModel = CharacterSearchViewModel(service: stub)
+
+        await viewModel.performSearch(named: "xyz")
+
+        #expect(viewModel.characters.isEmpty)
+        #expect(viewModel.errorMessage == nil)
+        #expect(viewModel.noResultsText == "No characters found for \"xyz\".")
+    }
+
+    @MainActor
     @Test("Clearing the search text empties results without calling the service")
     func clearingSearchTextEmptiesResults() async throws {
         let stub = CharacterServiceStub()
