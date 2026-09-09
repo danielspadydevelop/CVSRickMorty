@@ -18,6 +18,9 @@ final class CharacterSearchViewModel {
     var searchText = ""
     var isLoading = false
     var errorMessage: String?
+    var statusFilter: StatusFilter = .any
+    var speciesFilter: SpeciesFilter = .any
+    var typeFilterText = ""
 
     init(service: any CharacterService) {
         self.service = service
@@ -45,26 +48,40 @@ final class CharacterSearchViewModel {
             } catch {
                 return
             }
-            await performSearch(named: newValue)
+            await performSearch(matching: makeQuery(name: newValue))
         }
     }
 
-    func performSearch(named name: String) async {
+    func filtersChanged() {
+        searchTextChanged(searchText)
+    }
+
+    func performSearch(matching query: CharacterQuery) async {
         isLoading = true
         noResultsText = nil
         errorMessage = nil
         defer { isLoading = false }
 
         do {
-            characters = try await service.searchCharacters(named: name)
+            characters = try await service.searchCharacters(matching: query)
         } catch is CancellationError {
             return
         } catch CharacterServiceError.unexpectedStatus(404) {
             characters = []
-            noResultsText = "No characters found for \"\(name)\"."
+            noResultsText = "No characters found for \"\(query.name)\"."
         } catch {
             characters = []
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func makeQuery(name: String) -> CharacterQuery {
+        let trimmedType = typeFilterText.trimmingCharacters(in: .whitespaces)
+        return CharacterQuery(
+            name: name,
+            status: statusFilter.queryValue,
+            species: speciesFilter.queryValue,
+            type: trimmedType.isEmpty ? nil : trimmedType
+        )
     }
 }
