@@ -20,9 +20,24 @@ enum CharacterServiceError: Error, Equatable {
 #if DEBUG
 final class CharacterServiceStub: CharacterService {
     var searchResultsToReturn: Result<[Character], Error> = .success([])
+    private(set) var searchedNames: [String] = []
 
     func searchCharacters(named name: String) async throws -> [Character] {
-        try searchResultsToReturn.get()
+        searchedNames.append(name)
+        return try searchResultsToReturn.get()
     }
 }
 #endif
+
+extension CharacterServiceError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "The request URL was invalid."
+        case .invalidResponse:
+            return "The server response was invalid."
+        case .unexpectedStatus(let statusCode):
+            return "The server returned an unexpected status code: \(statusCode)."
+        }
+    }
+}
