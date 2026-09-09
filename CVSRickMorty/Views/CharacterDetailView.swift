@@ -85,6 +85,7 @@ struct CharacterDetailView: View {
                 .foregroundStyle(.secondary)
             Text(text)
         }
+        .accessibilityElement(children: .combine)
     }
 }
 
