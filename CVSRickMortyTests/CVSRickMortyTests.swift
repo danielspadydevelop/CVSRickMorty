@@ -5,8 +5,8 @@
 //  Created by Daniel Spady on 9/9/26.
 //
 
-import Testing
 @testable import CVSRickMorty
+import Testing
 
 struct CVSRickMortyTests {
 
