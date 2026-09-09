@@ -24,6 +24,9 @@ struct CharacterListView: View {
                 }
             }
             .navigationTitle("Rick and Morty")
+            .navigationDestination(for: Character.self) { character in
+                CharacterDetailView(character: character)
+            }
             .searchable(text: $viewModel.searchText)
             .onChange(of: viewModel.searchText) { _, newValue in
                 viewModel.searchTextChanged(newValue)
@@ -34,7 +37,9 @@ struct CharacterListView: View {
     @ViewBuilder
     private var content: some View {
         List(viewModel.characters) { character in
-            CharacterRowView(character: character)
+            NavigationLink(value: character) {
+                CharacterRowView(character: character)
+            }
         }
         .listStyle(.plain)
         .overlay {

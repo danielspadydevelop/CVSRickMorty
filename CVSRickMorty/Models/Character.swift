@@ -7,7 +7,7 @@
 
 import Foundation
 
-nonisolated struct Character: Decodable, Equatable, Identifiable {
+nonisolated struct Character: Decodable, Hashable, Identifiable {
     let id: Int
     let name: String
     let status: String
@@ -71,7 +71,7 @@ nonisolated struct Character: Decodable, Equatable, Identifiable {
     }
 }
 
-nonisolated struct Origin: Decodable, Equatable {
+nonisolated struct Origin: Decodable, Hashable {
     let name: String
 }
 
