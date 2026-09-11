@@ -14,16 +14,14 @@ struct CharacterListView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if let errorMessage = viewModel.errorMessage {
-                    ContentUnavailableView(
-                        "Search Failed",
-                        systemImage: "exclamationmark.triangle",
-                        description: Text(errorMessage)
-                    )
-                } else {
-                    content
-                }
+            VStack(spacing: 0) {
+                SearchBar(
+                    text: viewModel.searchText,
+                    prompt: "Search characters",
+                    onTextChange: { viewModel.searchTextChanged($0) },
+                    onCancel: { viewModel.searchCancelTapped() }
+                )
+                list
             }
             .navigationTitle("Rick and Morty")
             .navigationDestination(for: Character.self) { character in
@@ -37,10 +35,6 @@ struct CharacterListView: View {
                     .accessibilityLabel("Filter search results")
                 }
             }
-            .searchable(text: $viewModel.searchText, prompt: "Search characters")
-            .onChange(of: viewModel.searchText) { _, newValue in
-                viewModel.searchTextChanged(newValue)
-            }
             .sheet(isPresented: $isShowingFilters) {
                 filterSheet
                     .presentationDetents([.medium])
@@ -48,36 +42,42 @@ struct CharacterListView: View {
         }
     }
 
-    @ViewBuilder
-    private var content: some View {
+    private var list: some View {
         List(viewModel.characters) { character in
             NavigationLink(value: character) {
                 CharacterRowView(character: character, namespace: imageTransitionNamespace)
             }
         }
         .listStyle(.plain)
-        .overlay {
-            if viewModel.isLoading {
-                ProgressView()
-                    .controlSize(.large)
-                    .accessibilityLabel("Loading characters")
-            }
-        }
-        .overlay {
-            if viewModel.characters.isEmpty, !viewModel.isLoading {
-                if let noResultsText = viewModel.noResultsText {
-                    ContentUnavailableView(
-                        "No Results",
-                        systemImage: "magnifyingglass",
-                        description: Text(noResultsText)
-                    )
-                } else if viewModel.searchText.isEmpty {
-                    ContentUnavailableView(
-                        "Search Characters",
-                        systemImage: "person.text.magnifyingglass",
-                        description: Text("Type a name to find Rick and Morty characters.")
-                    )
-                }
+        .overlay { stateOverlay }
+    }
+
+    @ViewBuilder
+    private var stateOverlay: some View {
+        if viewModel.isLoading {
+            ProgressView()
+                .controlSize(.large)
+                .accessibilityLabel("Loading characters")
+        } else if let errorMessage = viewModel.errorMessage {
+            ContentUnavailableView(
+                "Search Failed",
+                systemImage: "exclamationmark.triangle",
+                description: Text(errorMessage)
+            )
+            .background(.background)
+        } else if viewModel.characters.isEmpty {
+            if let noResultsText = viewModel.noResultsText {
+                ContentUnavailableView(
+                    "No Results",
+                    systemImage: "magnifyingglass",
+                    description: Text(noResultsText)
+                )
+            } else if viewModel.searchText.isEmpty {
+                ContentUnavailableView(
+                    "Search Characters",
+                    systemImage: "person.text.magnifyingglass",
+                    description: Text("Type a name to find Rick and Morty characters.")
+                )
             }
         }
     }

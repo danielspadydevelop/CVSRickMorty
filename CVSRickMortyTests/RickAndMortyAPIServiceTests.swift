@@ -36,19 +36,6 @@ struct RickAndMortyAPIServiceTests {
         override func stopLoading() {}
     }
 
-    private let characterJSON = """
-        {
-            "id": 1,
-            "name": "Rick Sanchez",
-            "status": "Alive",
-            "species": "Human",
-            "type": "",
-            "origin": { "name": "Earth (C-137)", "url": "" },
-            "image": "https://rickandmortyapi.com/api/character/avatar/1.jpeg",
-            "created": "2017-11-04T18:48:46.250Z"
-        }
-        """
-
     private func makeService() -> RickAndMortyAPIService {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MockURLProtocol.self]
@@ -58,7 +45,7 @@ struct RickAndMortyAPIServiceTests {
     @Test("Returns decoded characters and percent-encodes the search name in the query")
     func returnsDecodedCharacters() async throws {
         let responseJSON = """
-            { "results": [\(characterJSON)] }
+            { "results": [\(TestFixtures.characterJSON)] }
             """
         let responseData = try #require(responseJSON.data(using: .utf8))
         var requestedURL: URL?

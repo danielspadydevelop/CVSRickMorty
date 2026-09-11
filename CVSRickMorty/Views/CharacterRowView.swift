@@ -22,7 +22,6 @@ struct CharacterRowView: View {
             }
             .frame(width: 56, height: 56)
             .clipShape(.rect(cornerRadius: 8))
-            .accessibilityLabel(character.name)
             .matchedTransitionSource(id: character.id, in: namespace)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -32,6 +31,7 @@ struct CharacterRowView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .accessibilityElement(children: .combine)
     }
 }
 
