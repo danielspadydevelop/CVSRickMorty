@@ -16,28 +16,14 @@ nonisolated struct Character: Decodable, Hashable, Identifiable {
     let origin: Origin
     let image: URL
     let created: Date
+}
 
-    init(
-        id: Int,
-        name: String,
-        status: String,
-        species: String,
-        type: String,
-        origin: Origin,
-        image: URL,
-        created: Date
-    ) {
-        self.id = id
-        self.name = name
-        self.status = status
-        self.species = species
-        self.type = type
-        self.origin = origin
-        self.image = image
-        self.created = created
-    }
-
-    init(from decoder: Decoder) throws {
+extension Character {
+    // `nonisolated` must be repeated here: the type-level annotation does not
+    // propagate into extensions, and without it the compiler infers main-actor
+    // isolation for this initializer, which cannot satisfy Decodable's
+    // nonisolated requirement.
+    nonisolated init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(Int.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)

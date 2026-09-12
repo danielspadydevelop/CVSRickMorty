@@ -8,8 +8,9 @@
 import Foundation
 
 nonisolated struct CharacterDetailFormatter {
-    func createdDateText(for character: Character) -> String {
-        character.created.formatted(date: .long, time: .omitted)
+    func createdDateText(for character: Character, locale: Locale = .autoupdatingCurrent) -> String {
+        let style = Date.FormatStyle(date: .long, time: .omitted, locale: locale)
+        return character.created.formatted(style)
     }
 
     func typeText(for character: Character) -> String? {

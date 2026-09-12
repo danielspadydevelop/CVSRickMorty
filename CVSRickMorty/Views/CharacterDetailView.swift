@@ -10,12 +10,19 @@ import SwiftUI
 struct CharacterDetailView: View {
     let character: Character
     var namespace: Namespace.ID
+    private let imageSession: URLSession
 
     private let formatter = CharacterDetailFormatter()
 
     @State private var shareItems: [Any] = []
     @State private var isPreparingShare = false
     @State private var isShowingShareSheet = false
+
+    init(character: Character, namespace: Namespace.ID, imageSession: URLSession = .shared) {
+        self.character = character
+        self.namespace = namespace
+        self.imageSession = imageSession
+    }
 
     var body: some View {
         ScrollView {
@@ -71,7 +78,7 @@ struct CharacterDetailView: View {
         defer { isPreparingShare = false }
 
         var items: [Any] = [shareText]
-        if let data = try? await URLSession.shared.data(from: character.image).0,
+        if let data = try? await imageSession.data(from: character.image).0,
            let image = UIImage(data: data) {
             items.insert(image, at: 0)
         }

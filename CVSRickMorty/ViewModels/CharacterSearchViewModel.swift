@@ -15,7 +15,8 @@ final class CharacterSearchViewModel {
 
     private(set) var characters: [Character] = []
     private(set) var noResultsText: String?
-    var searchText = ""
+    private(set) var lastSavedSearchText = ""
+    private(set) var searchText = ""
     var isLoading = false
     var errorMessage: String?
     var statusFilter: StatusFilter = .any
@@ -52,11 +53,28 @@ final class CharacterSearchViewModel {
         }
     }
 
+    func searchCancelTapped() {
+        searchTask?.cancel()
+        let saved = lastSavedSearchText
+        guard !saved.isEmpty else { return }
+
+        searchText = saved
+        if characters.isEmpty || noResultsText != nil || errorMessage != nil {
+            Task { await performSearch(matching: makeQuery(name: saved)) }
+        }
+    }
+
     func filtersChanged() {
-        searchTextChanged(searchText)
+        let name = searchText.isEmpty ? lastSavedSearchText : searchText
+        guard !name.isEmpty else { return }
+        searchText = name
+        searchTextChanged(name)
     }
 
     func performSearch(matching query: CharacterQuery) async {
+        if !query.name.isEmpty {
+            lastSavedSearchText = query.name
+        }
         isLoading = true
         noResultsText = nil
         errorMessage = nil

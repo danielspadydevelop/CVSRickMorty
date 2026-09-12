@@ -40,12 +40,4 @@ final class CVSRickMortyUITests: XCTestCase {
             app.navigationBars.staticTexts["Rick Sanchez"].waitForExistence(timeout: 5)
         )
     }
-
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
-    }
 }

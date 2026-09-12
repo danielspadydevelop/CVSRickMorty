@@ -19,7 +19,7 @@ struct CharacterDetailFormatterTests {
         let created = try #require(Calendar.current.date(from: components))
         let character = Character.fixture(created: created)
 
-        #expect(formatter.createdDateText(for: character) == "November 4, 2017")
+        #expect(formatter.createdDateText(for: character, locale: Locale(identifier: "en_US")) == "November 4, 2017")
     }
 
     @Test("Returns the type text when the character has a type")
